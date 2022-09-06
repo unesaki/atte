@@ -62,7 +62,7 @@
                                 {{ __('日付一覧') }}
                             </a>
 
-                            <a class="dropdown-item" href="{{ url('/login') }}" onclick="event.preventDefault();
+                            <a class="dropdown-item" href="{{ route('login') }}" onclick="event.preventDefault();
                             document.getElementById('logout-form').submit();">
                                 {{ __('ログアウト') }}
                             </a>

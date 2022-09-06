@@ -14,11 +14,11 @@ class CreateRestsTable extends Migration
     public function up()
     {
         Schema::create('rests', function (Blueprint $table) {
-            $table->unsignedBigInteger('id')->unique()->nullable(false)->autoIncrement();
-            $table->bigInteger('user_id')->nullable(false)->unsigned();
-            $table->foreign('user_id')->references('id')->on('users');
-            $table->datetime('restIn')->nullable();
-            $table->datetime('restOut')->nullable();
+            $table->id();
+            $table->unsignedBigInteger('attendance_id');
+            $table->date('date');
+            $table->time('restIn')->nullable();
+            $table->time('restOut')->nullable();
             $table->timestamps();
         });
     }
