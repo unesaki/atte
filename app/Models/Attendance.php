@@ -7,13 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class Attendance extends Model
 {
-    protected $fillable = ['user_id', 'rest_id', 'date', 'punchIn', 'punchOut'];
+    protected $fillable = ['user_id', 'date', 'punchIn', 'punchOut'];
 
     public function users() {
         return $this->belongsTo('App\Models\User', "user_id");
     }
 
-    public function rest() {
-        return $this->belongsTo('App\Models\Rest', "rest_id");
+    public function rests() {
+        return $this->hasMany('App\Models\Rest');
     }
+    
 }

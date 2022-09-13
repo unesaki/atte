@@ -1,9 +1,8 @@
 <style>
-  th {
-    border-top: 1px solid black;
-    border-bottom: 1px solid black;
+  table th {
     font-size: 20px;
     padding: 20px 50px;
+    border-top: solid 1px #000;
   }
 
   td {
@@ -20,10 +19,36 @@
   .attendanceDate {
     width: 100%;
   }
+
+  .date {
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    margin: 10px 0 40px 0;
+  }
+
+  button {
+    border: solid 1px blue;
+    background: white;
+    color: blue;
+    padding: 0 10px;
+
+  }
+
+  .border {
+    border-top: solid 1px #000;
+  }
 </style>
 @extends('layouts.app')
 
 @section('content')
+<form action="{{ route('attendance') }}" method="post">
+  <div class="date">
+    <button type="submit" name="next"><</button>
+      {{ $date }} 
+      <button type="submit" name="back">></button>
+  </div>
+</form>
 
 <div class="attendanceDate">
   <table>
@@ -38,18 +63,18 @@
     </div>
 
     <div class="content">
-      @foreach ($startTimes as $startTime)
+      @foreach ($array as $element)
+      <span class="border"></span>
       <tr>
-        <th class="name">{{ Auth::user()->name }}</th>
-        <th class="start">{{ $startTime->punchIn }}</th>
-        <th class="end">{{ $startTime->punchOut}}</th>
+        <th class="name">{{ $element['name'] }}</th>
+        <th class="start">{{ $element['punchIn'] }}</th>
+        <th class="end">{{ $element['punchOut']}}</th>
+        <th>{{ $element['restTotal']}}</th>
+        <th>{{ $element['punchTotal'] }}</th>
         @endforeach
-        @foreach ($restTotals as $restTime)
-        <th>{{ $restTime['restTotal']}}</th>
-        @endforeach
-        
+
       </tr>
-      
+
     </div>
   </table>
 </div>

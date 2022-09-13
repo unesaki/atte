@@ -14,7 +14,8 @@ class CreateRestsTable extends Migration
     public function up()
     {
         Schema::create('rests', function (Blueprint $table) {
-            $table->bigIncrements('id')->autoIncrement();
+            $table->increments('id');
+            $table->integer('attendance_id');
             $table->date('date');
             $table->time('restIn')->nullable();
             $table->time('restOut')->nullable();

@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
 use App\Models\Rest;
 use App\Models\Attendance;
+use Illuminate\Support\Facades\DB;
 
 class RestController extends Controller
 {
@@ -19,24 +20,41 @@ class RestController extends Controller
         $time = $dt->toTimeString();
 
 
-        //Attendanceテーブルから、・ログイン中のuser_id・$dateの日付が合致する一番最初のレコードを取得
-        $attendance = Rest::with('attendances')->get();
-        dd('$attendance');
+        //Attendanceテーブルから、・ログイン中のuser_id、・$dateの日付が合致する一番最初のレコードを取得
+        $attendance = Attendance::where('user_id', $id)->where('date', $date)->first();
+
+        if (empty($attendance->id)) {
+            return redirect()->back()->with('result', '勤務が開始されていません');
+        } else {
+            $attendance_id = $attendance->id;
+        }
+
+        $noPunchIn =
+        Attendance::where('user_id', $id)->where('date', $date)->whereNull('punchIn')->first();
         
 
-        
-        
+        $oldRest = Rest::where('attendance_id', $attendance_id)->latest()->first();
+        $oldRestDay = "";
 
-        if (!empty($attendance->user_id) && (!empty($attendance->date))) {
+        //勤務が開始されていないとエラーを返す
+        if (!empty($noPunchIn)) {
             return redirect()->back()->with('result', '勤務が開始されていません');
         }
         
-    
+        $newRest = Carbon::today();
+        if ($oldRest) {
+            $oldRestDate = new Carbon($oldRest->restIn);
+            $oldRestDay = $oldRestDate->startOfDay();
+        }
+
         //休憩を終了せずに開始を押したらエラーを返す
-        
+        if (($oldRestDay == $newRest) && (empty($oldRest->restOut))) {
+            return redirect()->back()->with('result', '既に休憩を開始しています');
+        }
 
         //Restsに登録
         Rest::create([
+            'attendance_id' => $attendance_id,
             'date' => $date,
             'restIn' => $time,
         ]);
@@ -55,7 +73,12 @@ class RestController extends Controller
 
         //Attendanceテーブルから、・ログイン中のuser_id、・$dateの日付が合致する一番最初のレコードを取得
         $attendance = Attendance::where('user_id', $id)->where('date', $date)->first();
-        $attendance_id = $attendance->id;
+
+        if (empty($attendance->id)) {
+            return redirect()->back()->with('result', '勤務が開始されていません');
+        } else {
+            $attendance_id = $attendance->id;
+        }
 
 
         //Restテーブルから、・attendance_id、・$dateの日付が合致する, resuOutがnullの一番最初のレコードを取得
@@ -70,11 +93,11 @@ class RestController extends Controller
             return redirect()->back()->with('result', '休憩が開始されていないか、勤務が終了されています');
         }
     }
+
+    
 }
 
 /**
- * やること①
- * 一番最初、２２行目のidがない状態だとエラーとなってしまうため、idがなければ「勤務を開始してください」のエラー文章がリダイレクトで表示されるようにする
  * 
  * やること②
  * user_idが１ではない人が休憩を開始できない。

@@ -10,11 +10,11 @@ class Rest extends Model
     use HasFactory;
 
     protected $fillable = [
-        'date', 'restIn', 'restOut',
+        'date', 'attendance_id', 'restIn', 'restOut',
     ];
 
-    public function attendances() {
-        return $this->hasMany('App\Models\Attendance');
+    public function attendance() {
+        return $this->belongsTo('App\Models\Attendance');
     }
 
 }
