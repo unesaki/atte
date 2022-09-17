@@ -39,12 +39,12 @@
     border-top: solid 1px #000;
   }
 </style>
-@extends('layouts.app')
+@extends('layouts.header')
 
 @section('content')
 
 <div class="date">
-  <a class="arrow" href="{!! '/attendance/' . ($num - 1) !!}">&lt;</a>
+  <a class="arrow" href="{{!! '/attendance/' . ($num - 1) !!}}">&lt;</a>
   {{ $date->format('Y-m-d') }}
   <a class="arrow" href="{{!! '/attendance/' . ($num + 1) !!}}">&gt;</a>
 </div>

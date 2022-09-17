@@ -165,7 +165,7 @@ class AttendanceController extends Controller
 
         $items = Attendance::where('date', $dat)->paginate(5);
 
-        $items = Attendance::getSumTime($items);
+        
 
         
             
@@ -183,8 +183,8 @@ class AttendanceController extends Controller
                     "data" => $data,
                     "restData" => $restData,
                     "array" => $array,
-            "items" => $items,
-            "num" => $num,
+                    "items" => $items,
+                    "num" => $num,
                 ]);
         }
 
