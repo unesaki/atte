@@ -8,11 +8,12 @@ use App\Models\Rest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
 use App\Models\User;
+use DateTime;
 use Illuminate\Support\Facades\Date;
 
 class AttendanceController extends Controller
 {
-    public function show(Request $request)
+    public function index(Request $request)
     {
         return view('index');
     }
@@ -101,20 +102,13 @@ class AttendanceController extends Controller
 
         
 
-        if ($request->has('next')) {
-            $date = date("Y-m-d", strtotime("+1 day"));
-            return redirect('/attendance');
-        } elseif ($request->has('back')) {
-            $date = date("Y-m-d", strtotime("-1 day"));
-            return view('/attendance');
-        }
         
-
+        
         //Attendanceテーブルから、$dateの日付が合致するレコードを全て取得
         $data = Attendance::where('date', $date)->get();
-
+        
         $array = array();
-
+        
         foreach($data as $element) {
             $restData = Rest::where('attendance_id', $element->id)->get();
             $restTotal = 0;
@@ -126,13 +120,13 @@ class AttendanceController extends Controller
             $restHouAbout = $restMin % 60;
             $restHou = ($restMin - $restHouAbout) / 60;
             $restTotal = (sprintf("%02d", $restHou).":".sprintf("%02d", $restHouAbout).":".sprintf("%02d", $restSec));
-
+            
             $punchData = Attendance::where('id', $element->id)->get();
             $punchTotal = 0;
             foreach ($punchData as $punchElement) {
                 $punchTotal = strtotime($punchElement->punchOut) - strtotime($punchElement->punchIn);
             }
-
+            
             $punchSec = $punchTotal % 60;
             $punchMin = ($punchTotal - $punchSec) / 60;
             $punchHouAbout = $punchMin % 60;
@@ -154,17 +148,45 @@ class AttendanceController extends Controller
                     'punchOut' => $element->punchOut,
                     'restTotal' => $restTotal,
                     'punchTotal' => $punchTotal,
-                )
-            );
+                    )
+                );
+            }
+
+        $dat = Carbon::today();
+        $num = (int)$request->num;
+
+        if ($num == 0) {
+            $date = $dat;
+        } elseif ($num > 0) {
+            $date = $dat->addDays($num);
+        } else {
+            $date = $dat->subDays(-$num);
         }
 
+        $items = Attendance::where('date', $dat)->paginate(5);
 
-        return view('attendance')->with([
-            "date" => $date,
-            "data" => $data,
-            "restData" => $restData,
-            "array" => $array,
+        $items = Attendance::getSumTime($items);
+
+        
             
-        ]);
+            /*if ($request->has('next')) {
+                $date = date("Y-m-d", strtotime("+1 day"));
+                return view('/attendance', compact('date'),compact('array'));
+            } elseif ($request->has('back')) {
+                $date = date("Y-m-d", strtotime("-1 day"));
+                    return view('/attendance',compact('date'),compact('array'));
+            }
+                //$date = date("Y-m-d", strtotime("-1 day"));*/
+                
+                return view('attendance')->with([
+                    "date" => $date,
+                    "data" => $data,
+                    "restData" => $restData,
+                    "array" => $array,
+            "items" => $items,
+            "num" => $num,
+                ]);
         }
+
+        
 }

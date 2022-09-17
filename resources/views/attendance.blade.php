@@ -42,13 +42,12 @@
 @extends('layouts.app')
 
 @section('content')
-<form action="{{ route('attendance') }}" method="post">
-  <div class="date">
-    <button type="submit" name="next"><</button>
-      {{ $date }} 
-      <button type="submit" name="back">></button>
-  </div>
-</form>
+
+<div class="date">
+  <a class="arrow" href="{!! '/attendance/' . ($num - 1) !!}">&lt;</a>
+  {{ $date->format('Y-m-d') }}
+  <a class="arrow" href="{{!! '/attendance/' . ($num + 1) !!}}">&gt;</a>
+</div>
 
 <div class="attendanceDate">
   <table>

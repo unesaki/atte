@@ -26,3 +26,4 @@ Route::post('rest/end', [RestController::class, 'endRest'])->name('rest.end');
 
 Route::get('attendance', [AttendanceController::class, 'getAttendance'])->name('attendance');
 Route::post('attendance', [AttendanceController::class, 'getAttendance'])->name('attendance');
+//Route::get('attendance/{num}', [AttendanceController::class, 'getAttendance'])->name('attendance');
