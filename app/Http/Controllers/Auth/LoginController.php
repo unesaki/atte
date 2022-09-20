@@ -41,7 +41,7 @@ class LoginController extends Controller
     public function handle($request, Closure $next, $guard = null)
     {
         if (Auth::guard($guard)->check()) {
-            return redirect('index');  // ここを変更する
+            return redirect('/');  // ここを変更する
         }
     }
 

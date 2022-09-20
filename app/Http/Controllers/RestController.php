@@ -51,6 +51,11 @@ class RestController extends Controller
         if (($oldRestDay == $newRest) && (empty($oldRest->restOut))) {
             return redirect()->back()->with('result', '既に休憩を開始しています');
         }
+        
+        $rest = Attendance::where('user_id', $id)->whereNull('punchOut')->where('date', $date)->first();
+        if (empty($rest)) {
+            return redirect()->back()->with('result', '勤務が終了しています');
+        }
 
         //Restsに登録
         Rest::create([
@@ -59,7 +64,7 @@ class RestController extends Controller
             'restIn' => $time,
         ]);
 
-        return redirect('/index')->with('result', '休憩を開始しました');
+        return redirect('/')->with('result', '休憩を開始しました');
     }
         
     //休憩終了　　　　　の処理
@@ -88,7 +93,7 @@ class RestController extends Controller
         //上記があればrestOutを更新する。　無ければエラーを返す
         if (!empty($rest)) {
             $rest->update(['restOut' => $time]);
-            return redirect('/index')->with('result', '休憩を終了しました');
+            return redirect('/')->with('result', '休憩を終了しました');
         } else {
             return redirect()->back()->with('result', '休憩が開始されていないか、勤務が終了されています');
         }
@@ -98,9 +103,6 @@ class RestController extends Controller
 }
 
 /**
- * 
- * やること②
- * user_idが１ではない人が休憩を開始できない。
  * 
  * やること③
  */

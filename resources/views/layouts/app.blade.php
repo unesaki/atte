@@ -58,9 +58,7 @@
                                 {{ __('ホーム') }}
                             </a>
 
-                            <a class="dropdown-item" href="{{ route('attendance') }}">
-                                {{ __('日付一覧') }}
-                            </a>
+                            
 
                             <a class="dropdown-item" href="{{ route('login') }}" onclick="event.preventDefault();
                             document.getElementById('logout-form').submit();">

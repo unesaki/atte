@@ -8,14 +8,19 @@ use App\Models\Rest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
 use App\Models\User;
-use DateTime;
-use Illuminate\Support\Facades\Date;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Collection;
 
 class AttendanceController extends Controller
 {
     public function index(Request $request)
     {
+        if (empty(Auth::user()->name)) {
+            return view('auth/login');
+        } else {
         return view('index');
+        }
     }
 
     //勤務開始の処理
@@ -27,6 +32,7 @@ class AttendanceController extends Controller
         $time = $dt->toTimeString();
 
         //Attendanceテーブルから、・ログイン中のuser_id・$dateの日付が合致する一番最初のレコードを取得
+        
         $attendance = Attendance::where('user_id', $id)->where('date', $date)->first();
         
 
@@ -58,7 +64,7 @@ class AttendanceController extends Controller
             'punchIn' => $time,
         ]);
 
-        return redirect('/index')->with('result', '勤務を開始しました');
+        return redirect('/')->with('result', '勤務を開始しました');
     }
 
     //退勤の処理
@@ -73,37 +79,52 @@ class AttendanceController extends Controller
         //Attendanceテーブルから、・ログイン中のuser_id・$dateの日付が合致するpunchOutがnullの一番最初のレコードを取得
         $attendance = Attendance::where('user_id', $id)->whereNull('punchOut')->where('date', $date)->first();
 
+        $attendanceId = Attendance::where('user_id', $id)->where('date', $date)->first();
+
+        if (empty($attendance->id)) {
+            return redirect()->back()->with('result', '勤務が開始されていません');
+        } else {
+            $attendance_id = $attendanceId->id;
+        }
+
         $rest_id = Rest::where('rest_id');
 
+
+        $oldRest = Rest::where('attendance_id', $attendance_id)->latest()->first();
+        $oldRestDay = "";
+
+        $newRest = Carbon::today();
+        if ($oldRest) {
+            $oldRestDate = new Carbon($oldRest->restIn);
+            $oldRestDay = $oldRestDate->startOfDay();
+        }
+
+        //休憩を終了せずに開始を押したらエラーを返す
+        if (($oldRestDay == $newRest) && (empty($oldRest->restOut))) {
+            return redirect()->back()->with('result', '休憩が終了されていません');
+        }
 
         //上記が存在すればpunchOutを更新、それ以外ではエラー文を返す
         if (!empty($attendance)) {
             $attendance->update(['punchOut' => $time, 'rest_id' => $rest_id]);
-            return redirect('/index')->with('result', '勤務を終了しました');
+            return redirect('/')->with('result', '勤務を終了しました');
         } else {
             return redirect()->back()->with('result', '勤務が開始されていないか、勤務が終了されています');
         }
     }
 
-    public function operationDate(Request $request)
-    {
-        session(['date' => $request->date]);
-        return redirect()->back();
-    }
-
-    
-
-    public function getAttendance(Request $request)
+    public function getAttendance(Request $request, $num)
     {
         $id = Auth::id();
         //日付の表示
         $dt = new Carbon();
         $date = $dt->toDateString();
 
+        $day = $num;
+        $date = date("Y-m-d", strtotime($date .' ' . $day . 'day'));
+        
         
 
-        
-        
         //Attendanceテーブルから、$dateの日付が合致するレコードを全て取得
         $data = Attendance::where('date', $date)->get();
         
@@ -140,6 +161,8 @@ class AttendanceController extends Controller
             $punchTotal = (sprintf("%02d", $punchHou1) . ":" . sprintf("%02d", $punchHouAbout1) . ":" . sprintf("%02d", $punchSec1));
             
             $user = User::find($element->user_id);
+
+            
             array_push(
                 $array,
                 array(
@@ -151,42 +174,22 @@ class AttendanceController extends Controller
                     )
                 );
             }
+            $coll = collect($array);
+            $pageData = $this->paginate($coll, 5, null, ['path'=>'/attendance/'. $num]);
 
-        $dat = Carbon::today();
-        $num = (int)$request->num;
-
-        if ($num == 0) {
-            $date = $dat;
-        } elseif ($num > 0) {
-            $date = $dat->addDays($num);
-        } else {
-            $date = $dat->subDays(-$num);
-        }
-
-        $items = Attendance::where('date', $dat)->paginate(5);
-
-        
-
-        
             
-            /*if ($request->has('next')) {
-                $date = date("Y-m-d", strtotime("+1 day"));
-                return view('/attendance', compact('date'),compact('array'));
-            } elseif ($request->has('back')) {
-                $date = date("Y-m-d", strtotime("-1 day"));
-                    return view('/attendance',compact('date'),compact('array'));
-            }
-                //$date = date("Y-m-d", strtotime("-1 day"));*/
                 
-                return view('attendance')->with([
-                    "date" => $date,
-                    "data" => $data,
-                    "restData" => $restData,
-                    "array" => $array,
-                    "items" => $items,
-                    "num" => $num,
-                ]);
+            return view('attendance')->with([
+                "date" => $date,
+                "data" => $data,
+                "array" => $array,
+                "pageData" => $pageData,
+                "num" => $num,
+            ]);
         }
-
-        
+        private function paginate($items, $perPage = 5, $page = null, $options = []) {
+            $page = $page ?: (Paginator::resolveCurrentPage() ?: 1);
+        $items = $items instanceof Collection ? $items : Collection::make($items);
+        return new LengthAwarePaginator($items->forPage($page, $perPage), $items->count(), $perPage, $page, $options);
+        }
 }
