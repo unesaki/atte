@@ -50,6 +50,12 @@
     line-height: 50px;
     font-weight: bold;
   }
+
+  .arrow {
+    text-decoration: none;
+    padding: 10px;
+    
+  }
 </style>
 @extends('layouts.header')
 

@@ -47,7 +47,7 @@
                 {{ __('ホーム') }}
               </a>
 
-              <a class="dropdown-item" href="{{ route('attendance', $num) }}">
+              <a class="dropdown-item" href="{{ route('attendance', 0) }}">
                 {{ __('日付一覧') }}
               </a>
 
