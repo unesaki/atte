@@ -13,7 +13,9 @@ Auth::routes();
 
 
 Route::get('/', [AttendanceController::class, 'index'])->name('index');
-
+Route::get('/users', function () {
+  return \App\User::all();
+});
 Route::post('/attendance/start', [AttendanceController::class, 'startAttendance'])->name('attendance.start');
 Route::post('/attendance/end', [AttendanceController::class, 'endAttendance'])->name('attendance.end');
 
