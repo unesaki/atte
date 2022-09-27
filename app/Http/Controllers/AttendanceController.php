@@ -23,7 +23,7 @@ class AttendanceController extends Controller
         }
     }
 
-    //勤務開始の処理
+
     public function startAttendance()
     {
         $id = Auth::id();
@@ -31,33 +31,25 @@ class AttendanceController extends Controller
         $date = $dt->toDateString();
         $time = $dt->toTimeString();
 
-        //Attendanceテーブルから、・ログイン中のuser_id・$dateの日付が合致する一番最初のレコードを取得
-        
         $attendance = Attendance::where('user_id', $id)->where('date', $date)->first();
         
-
         $oldAttendance = Attendance::where('user_id', $id)->latest()->first();
         $oldAttendanceDay = "";
         $newAttendance = Carbon::today();
 
-
-        //user_idとdateが存在していれば(同日に一回出勤していれば)、エラーを返す
         if (!empty($attendance->user_id) && (!empty($attendance->date))) {
             return redirect()->back()->with('result', '本日はすでに勤務を開始しています');
         }
-
 
         if ($oldAttendance) {
             $oldAttendanceDate = new Carbon($oldAttendance->punchIn);
             $oldAttendanceDay = $oldAttendanceDate->startOfDay();
         }
 
-        //同日かつ退勤を押していない状態で出勤が押されてもエラーを返す
         if (($oldAttendanceDay == $newAttendance) && (empty($oldAttendance->punchOut))) {
             return redirect()->back()->with('result', 'すでに勤務を開始しています');
         }
 
-        //attendanceテーブルに登録
         Attendance::create([
             'user_id' => $id,
             'date' => $date,
@@ -67,7 +59,7 @@ class AttendanceController extends Controller
         return redirect('/')->with('result', '勤務を開始しました');
     }
 
-    //退勤の処理
+
     public function endAttendance()
     {
         $id = Auth::id();
@@ -75,8 +67,6 @@ class AttendanceController extends Controller
         $date = $dt->toDateString();
         $time = $dt->toTimeString();
 
-
-        //Attendanceテーブルから、・ログイン中のuser_id・$dateの日付が合致するpunchOutがnullの一番最初のレコードを取得
         $attendance = Attendance::where('user_id', $id)->whereNull('punchOut')->where('date', $date)->first();
 
         $attendanceId = Attendance::where('user_id', $id)->where('date', $date)->first();
@@ -89,7 +79,6 @@ class AttendanceController extends Controller
 
         $rest_id = Rest::where('rest_id');
 
-
         $oldRest = Rest::where('attendance_id', $attendance_id)->latest()->first();
         $oldRestDay = "";
 
@@ -99,12 +88,10 @@ class AttendanceController extends Controller
             $oldRestDay = $oldRestDate->startOfDay();
         }
 
-        //休憩を終了せずに開始を押したらエラーを返す
         if (($oldRestDay == $newRest) && (empty($oldRest->restOut))) {
             return redirect()->back()->with('result', '休憩が終了されていません');
         }
 
-        //上記が存在すればpunchOutを更新、それ以外ではエラー文を返す
         if (!empty($attendance)) {
             $attendance->update(['punchOut' => $time, 'rest_id' => $rest_id]);
             return redirect('/')->with('result', '勤務を終了しました');
@@ -116,18 +103,11 @@ class AttendanceController extends Controller
     public function getAttendance(Request $request, $num)
     {
         $id = Auth::id();
-        //日付の表示
         $dt = new Carbon();
         $date = $dt->toDateString();
-
         $day = $num;
         $date = date("Y-m-d", strtotime($date .' ' . $day . 'day'));
-        
-        
-
-        //Attendanceテーブルから、$dateの日付が合致するレコードを全て取得
         $data = Attendance::where('date', $date)->get();
-        
         $array = array();
         
         foreach($data as $element) {
@@ -162,7 +142,6 @@ class AttendanceController extends Controller
             
             $user = User::find($element->user_id);
 
-            
             array_push(
                 $array,
                 array(
@@ -176,8 +155,6 @@ class AttendanceController extends Controller
             }
             $coll = collect($array);
             $pageData = $this->paginate($coll, 5, null, ['path'=>'/attendance/'. $num]);
-
-            
                 
             return view('attendance')->with([
                 "date" => $date,

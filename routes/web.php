@@ -4,13 +4,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\RestController;
-use App\Http\Controllers\CalendarController;
-
-
 
 
 Auth::routes();
-
 
 Route::get('/', [AttendanceController::class, 'index'])->name('index');
 Route::get('/users', function () {
